@@ -1,0 +1,65 @@
+<html>
+
+<head>
+    <title>Sanderslando Stapel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link href="core.css" rel="stylesheet">
+    <style>
+        .box {
+            float: left;
+            margin: 0px;
+            width: 50%;
+            height: 50%;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        .container {
+            background-color: var(--bs-blue);
+        }
+
+        body{
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container pb-3">
+        <div class="row text-center pt-2 pb-3">
+            <div class="col-lg-3">
+                <img src="/favicon.png" alt="Logo" height="75">
+            </div>
+            <div class="col-lg-7">
+                <h1>Stapel</h1>
+            </div>
+        </div>
+    </div>
+    <div class="box" id="gA"><iframe src="compiler.html" frameborder="0" scrolling="no" width="100%" height="100%">
+        </iframe> </div>
+
+    <div class="box" id="gB"> <iframe src="interpeter.html" frameborder="0" scrolling="no" width="100%" height="100%">
+        </iframe>
+    </div>
+    <div class="clear"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded",function(){
+            document.getElementById("gA").style = "height: calc(100% - " + (Math.round(document.getElementsByClassName("container")[0].getClientRects()[0].height)+1) + "px)";
+            document.getElementById("gB").style = "height: calc(100% - " + (Math.round(document.getElementsByClassName("container")[0].getClientRects()[0].height)+1) + "px)";
+        });
+        window.sendMessageToCompiler = function(e){};
+        window.sendMessageToInterpeter = function(e){
+            document.getElementById("gB").childNodes.forEach(function(a,b){
+                if(a instanceof HTMLIFrameElement){
+                    a.contentWindow.loadCardridge([e.path],e.value);
+                }
+            });
+        };
+    </script>
+</body>
+
+</html>

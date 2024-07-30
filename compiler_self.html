@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <style>
+            #console_id{
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <textarea id="console_id"></textarea>
+        <script src="wasm/debug/stapelc.js" async></script>
+        <script>
+
+            const STAPEL_SOURCE_FILE = "/home/web_user/test.txt";
+            const STAPEL_DEST_FILE = "/home/web_user/test.st";
+
+            window.loadCardridge = function(args,val){
+                document.getElementById("console_id").value = "";
+                if(FS.findObject(STAPEL_SOURCE_FILE)!=null){
+                    FS.unlink(STAPEL_SOURCE_FILE);
+                }
+                FS.writeFile(STAPEL_SOURCE_FILE,val);
+                out = function(evt){
+                    document.getElementById("console_id").value += evt + "\n";
+                };
+                return callMain(args);
+            };
+
+            window.getCompiledFile = function(){
+                return FS.readFile(STAPEL_DEST_FILE);
+            };
+
+            window.getErrorMessages = function(){
+                return document.getElementById("console_id").value;
+            };
+        </script>
+    </body>
+</html>

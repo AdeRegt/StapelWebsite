@@ -1,0 +1,230 @@
+<html>
+
+<head>
+    <style>
+        /* #sourcecode {
+            width: 100%;
+            height: 60%;
+            margin: 0px;
+        } */
+        #sourceconsole {
+            width: 100%;
+            height: 30%;
+            margin: 0px;
+            font-weight: bold;
+        }
+        #sourcecode {
+            display: none;
+        }
+        #texthost {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            font-weight: bold;
+        }
+        .texthostcontainer{
+            width: 100%;
+            height: 30%;
+            margin: 0px;
+            font-weight: bold;
+            background-color: white;
+        }
+        .cm-editor{
+            height: 100%;
+        }
+        #compileritself{
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <button onclick="open_file()">Open source</button>
+    <button onclick="save_file()">Save source</button>
+    <button onclick="save_compiled()" id="save_compiled_button" disabled>Save compiled</button>
+    <textarea id="sourcecode"></textarea>
+    <div class="texthostcontainer">
+        <div id="texthost"></div>
+    </div>
+    <textarea id="sourceconsole" disabled></textarea>
+    <iframe src="compiler_self.html" id="compileritself" frameborder="0" scrolling="no" onload="window.compilerselfisloaded = true;"></iframe>
+    <script type="module">
+        import { basicSetup, EditorView } from "./cm/codemirror.js";
+        import { autocompletion } from "./cm/@codemirror-autocomplete.js";
+        import { ViewPlugin, keymap } from "./cm/@codemirror-view.js";
+        import { indentWithTab } from "./cm/@codemirror-commands.js";
+
+        var textmirror = new EditorView({
+            // doc: DEFAULT_PROGRAM,
+            extensions: [
+              basicSetup,
+              keymap.of([indentWithTab]),
+              ViewPlugin.fromClass(class {
+                  constructor(view) {}
+          
+                  update(update) {
+                    if (update.docChanged){
+                        sourcecode.value = textmirror.state.doc.toString();
+                        sourcecode.dispatchEvent(new Event("change"));
+                    }
+                  }
+                }),
+              autocompletion({override: [myCompletions.bind(this)]})
+            ],
+            parent: texthost
+        });
+        document.textmirror = textmirror;
+
+        function myCompletions(context) {
+            let before = context.matchBefore(/\w+/);
+            var opcodelist = [];
+            var completions = [
+                {label: "exit", type: "keyword", info: "quits the VM"},
+                {label: "push address x", type: "keyword", info: "pushes the address of x to the stack"},
+                {label: "push value_at x", type: "keyword", info: "pushes the current value of x to the stack"},
+                {label: "push value x", type: "keyword", info: "pushes x to the stack"},
+                {label: "debug", type: "keyword", info: "show the stack and the instruction"},
+                {label: "add", type: "keyword", info: "pops two values from the stack, adds them and push the result back to the stack"},
+                {label: "sub", type: "keyword", info: "pops two values from the stack, substracts them and push the result back to the stack"},
+                {label: "mul", type: "keyword", info: "pops two values from the stack, multiply them and push the result back to the stack"},
+                {label: "div", type: "keyword", info: "pops two values from the stack, divide them and push the result back to the stack"},
+                {label: "call x", type: "keyword", info: "calls label x"},
+                {label: "jump directly x", type: "keyword", info: "jumps directly to x"},
+                {label: "jump equals x", type: "keyword", info: "pops two values from the stack and compares then, if they are equal, the vm jumps to x"},
+                {label: "int", type: "keyword", info: "calls operatingsystem interrupt. this function uses 5 values from the stack and pushes the result back to the stack"},
+                {label: "ret", type: "keyword", info: "returns from a function"},
+                {label: "pop x", type: "keyword", info: "pops a value from the stack to variable x"},
+                {label: "label y", type: "keyword", info: "specify a label called y"},
+                {label: "dump text y", type: "keyword", info: "puts a unaltered text in memory"},
+                {label: "dump number y", type: "keyword", info: "puts a unaltered number in memory"},
+                {label: "syscall 1", type: "keyword", info: "takes a address from the stack and prints the value at the address to the screen"},
+                {label: "syscall 2", type: "keyword", info: "checks for userinput and pops the value back to the stack"}
+            ];
+            if (!context.explicit && !before) {
+                return null;
+            }
+            return {
+                from: before ? before.from : context.pos,
+                options: completions,
+                validFor: /^\w*$/
+            };
+        }
+    </script>
+    <script>
+
+        const STAPEL_SOURCE_FILE = "/home/web_user/test.txt";
+        const STAPEL_DEST_FILE = "/home/web_user/test.st";
+
+        window.compilerselfisloaded = false;
+
+        function open_file() {
+            window.showOpenFilePicker({
+                types: [
+                    {
+                        description: "Source files",
+                        accept: {
+                            "text/plain": [".ssf"],
+                        },
+                    },
+                ],
+                excludeAcceptAllOption: true,
+                multiple: false,
+            }).then(function (result) {
+                return result[0].getFile();
+            }).then(function(result){
+                return result.text();
+            }).then(function(result){
+                document.getElementById("sourcecode").value = result;
+                document.getElementById("sourcecode").dispatchEvent(new Event("change"));
+            });
+        }
+
+        function save_file() {
+            document.getElementById("sourcecode").disabled = true;
+            window.showSaveFilePicker({
+                excludeAcceptAllOption: true,
+                types: [
+                    {
+                        description: "Source files",
+                        accept: {
+                            "text/plain": [".ssf"],
+                        },
+                    },
+                ]
+            }).then(function (result) {
+                return result.createWritable();
+            }).then(function(result){
+                return result.write(document.getElementById("sourcecode").value).then(function(){
+                    return result.close();
+                });
+            }).then(function(result){
+                document.getElementById("sourcecode").disabled = false;
+            }).catch(function(){
+                console.log("Niet-OK");
+                document.getElementById("sourcecode").disabled = false;
+            });
+        }
+
+        function save_compiled() {
+            if(window.compilerselfisloaded){
+                var cw = document.getElementById("compileritself").contentWindow;
+                var rs = cw.loadCardridge(["--input",STAPEL_SOURCE_FILE,"--output",STAPEL_DEST_FILE],document.getElementById("sourcecode").value);
+                if(rs==0){
+                    var binary = cw.getCompiledFile();
+                    window.showSaveFilePicker({
+                        excludeAcceptAllOption: true,
+                        types: [
+                            {
+                                description: "Stapel binary",
+                                accept: {
+                                    "text/plain": [".st"],
+                                },
+                            },
+                        ]
+                    }).then(function (result) {
+                        return result.createWritable();
+                    }).then(function(result){
+                        return result.write(binary).then(function(){
+                            return result.close();
+                        });
+                    })
+                }
+            }
+        }
+
+        function load_and_exec(val){
+            if(window.compilerselfisloaded){
+                var cw = document.getElementById("compileritself").contentWindow;
+                var rs = cw.loadCardridge(["--input",STAPEL_SOURCE_FILE,"--output",STAPEL_DEST_FILE],val);
+                if(rs==0){
+                    window.parent.sendMessageToInterpeter({
+                        name: "loadFile",
+                        path: STAPEL_DEST_FILE,
+                        value: document.getElementById("compileritself").contentWindow.getCompiledFile()
+                    });
+                }
+                document.getElementById("save_compiled_button").disabled = rs==1;
+                document.getElementById("sourceconsole").value = cw.getErrorMessages();
+                window.compilerselfisloaded = false;
+                document.getElementById("compileritself").contentWindow.location.reload()
+            }
+        }
+
+        document.getElementById("sourcecode").addEventListener("change",function(){
+            load_and_exec(document.getElementById("sourcecode").value);
+        });
+
+        document.getElementById("sourcecode").addEventListener("keyup",function(evt){
+            if(evt.key==="Enter"){
+                load_and_exec(document.getElementById("sourcecode").value);
+            }
+        });
+
+        function load_cardridge(message){
+            load_and_exec(message);
+        }
+        
+    </script>
+</body>
+
+</html>
