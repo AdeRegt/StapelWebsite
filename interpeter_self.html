@@ -1,0 +1,44 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        <script src="/wasm/stapel.js" async></script>
+        <script>
+
+
+            const STAPEL_DEST_FILE = "/home/web_user/test.st";
+
+            document.ii = null;
+
+            function prepareCardridge(val){
+                if(FS.findObject(STAPEL_DEST_FILE)!=null){
+                    FS.unlink(STAPEL_DEST_FILE);
+                }
+                FS.writeFile(STAPEL_DEST_FILE,val);
+            }
+
+            function prepareOutputGenerator(callback){
+                out = function(evt){
+                    callback(evt);
+                };
+            }
+
+            function executeCardridge(args,callback){
+                var res = callMain(args);
+                if(res==0){
+                    document.ii = window.setInterval(function(){
+                        if(_handle_default_next_instruction()==0){
+                            window.clearInterval(document.ii);
+                            return callback();
+                        }
+                    },100);
+                }
+            }
+
+            function getByteCode(){
+                return FS.readFile(STAPEL_DEST_FILE);
+            }
+        </script>
+    </body>
+</html>

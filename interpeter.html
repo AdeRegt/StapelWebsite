@@ -13,12 +13,11 @@
     </head>
     <body>
         <textarea id="console_id" disabled="disabled"></textarea>
-        <script src="wasm/debug/stapel.js" async></script>
+        
+        <iframe src="interpeter_self.html" id="interpeteritself" frameborder="0" scrolling="no" onload="window.interpeterselfisloaded = true;"></iframe>
         <script>
 
-            const STAPEL_DEST_FILE = "/home/web_user/test.st";
-
-            document.ii = null;
+            window.interpeterselfisloaded = false;
 
             document.addEventListener("keyup",function(e){
                 console.log("sending ",e.key.charCodeAt(0));
@@ -26,31 +25,24 @@
             });
 
             window.loadCardridge = function(args,val){
-                if(document.ii!=null){
-                    return;
-                }
                 document.getElementById("console_id").value = "";
-                if(FS.findObject(STAPEL_DEST_FILE)!=null){
-                    FS.unlink(STAPEL_DEST_FILE);
-                }
-                FS.writeFile(STAPEL_DEST_FILE,val);
-                out = function(evt){
-                    document.getElementById("console_id").value += evt + "\n";
-                };
-                var res = callMain(args);
-                if(res==0){
-                    document.ii = window.setInterval(function(){
-                        if(_handle_default_next_instruction()==0){
-                            window.clearInterval(document.ii);
-                            console.log("Program finished");
-                            return;
-                        }
-                    },100);
+                if(window.interpeterselfisloaded){
+                    var cw = document.getElementById("interpeteritself").contentWindow;
+
+                    cw.prepareCardridge(val);
+                    cw.prepareOutputGenerator(function(evt){
+                        document.getElementById("console_id").value += evt + "\n";
+                    });
+                    cw.executeCardridge(args,function(){
+                        console.log("Program finished");
+                        document.getElementById("interpeteritself").contentWindow.location.reload();
+                    });
                 }
             };
 
             window.getCompiledFile = function(){
-                return FS.readFile(STAPEL_DEST_FILE);
+                var cw = document.getElementById("interpeteritself").contentWindow;
+                return cw.getByteCode();
             };
 
             window.getErrorMessages = function(){

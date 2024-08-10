@@ -1,0 +1,4 @@
+<FilesMatch "[^.]+\.wasm$">
+  # Header set Content-Encoding "gzip"
+  Header set Content-Type "application/wasm"
+</FilesMatch>

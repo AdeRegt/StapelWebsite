@@ -8,14 +8,15 @@
     </head>
     <body>
         <textarea id="console_id"></textarea>
-        <script src="wasm/debug/stapelc.js" async></script>
+        <script src="/wasm/stapelc.js" async></script>
         <script>
 
             const STAPEL_SOURCE_FILE = "/home/web_user/test.txt";
             const STAPEL_DEST_FILE = "/home/web_user/test.st";
 
             window.loadCardridge = function(args,val){
-                document.getElementById("console_id").value = "";
+                var now = new Date();
+                document.getElementById("console_id").value = "Compilation started at " + now.getUTCHours() + ":" + now.getUTCMinutes() + "\n";
                 if(FS.findObject(STAPEL_SOURCE_FILE)!=null){
                     FS.unlink(STAPEL_SOURCE_FILE);
                 }
@@ -23,7 +24,11 @@
                 out = function(evt){
                     document.getElementById("console_id").value += evt + "\n";
                 };
-                return callMain(args);
+                // return _main(args.length,args);
+                var res = callMain(args);
+                document.getElementById("console_id").value += "Compiler finished with exitcode " + res + "\n";
+                return res;
+                // return run(args);
             };
 
             window.getCompiledFile = function(){

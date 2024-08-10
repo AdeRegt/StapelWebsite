@@ -41,7 +41,9 @@
 <body>
     <button onclick="open_file()">Open source</button>
     <button onclick="save_file()">Save source</button>
+    <button onclick="compile()">Compile</button>
     <button onclick="save_compiled()" id="save_compiled_button" disabled>Save compiled</button>
+    <input type="checkbox" id="enableverbose" ><label for="enableverbose" style="color:white">Verbose</label>
     <textarea id="sourcecode"></textarea>
     <div class="texthostcontainer">
         <div id="texthost"></div>
@@ -64,8 +66,7 @@
           
                   update(update) {
                     if (update.docChanged){
-                        sourcecode.value = textmirror.state.doc.toString();
-                        sourcecode.dispatchEvent(new Event("change"));
+                        document.getElementById("sourcecode").value = textmirror.state.doc.toString();
                     }
                   }
                 }),
@@ -168,7 +169,11 @@
         function save_compiled() {
             if(window.compilerselfisloaded){
                 var cw = document.getElementById("compileritself").contentWindow;
-                var rs = cw.loadCardridge(["--input",STAPEL_SOURCE_FILE,"--output",STAPEL_DEST_FILE],document.getElementById("sourcecode").value);
+                var dat = ["--input",STAPEL_SOURCE_FILE,"--output",STAPEL_DEST_FILE];
+                if(enableverbose.checked){
+                    dat.push("--verbose");
+                }
+                var rs = cw.loadCardridge(dat,document.getElementById("sourcecode").value);
                 if(rs==0){
                     var binary = cw.getCompiledFile();
                     window.showSaveFilePicker({
@@ -195,7 +200,11 @@
         function load_and_exec(val){
             if(window.compilerselfisloaded){
                 var cw = document.getElementById("compileritself").contentWindow;
-                var rs = cw.loadCardridge(["--input",STAPEL_SOURCE_FILE,"--output",STAPEL_DEST_FILE],val);
+                var dat = ["--input",STAPEL_SOURCE_FILE,"--output",STAPEL_DEST_FILE];
+                if(enableverbose.checked){
+                    dat.push("--verbose");
+                }
+                var rs = cw.loadCardridge(dat,val);
                 if(rs==0){
                     window.parent.sendMessageToInterpeter({
                         name: "loadFile",
@@ -222,6 +231,10 @@
 
         function load_cardridge(message){
             load_and_exec(message);
+        }
+
+        function compile(){
+            document.getElementById("sourcecode").dispatchEvent(new Event("change"));
         }
         
     </script>
