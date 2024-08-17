@@ -79,30 +79,96 @@
         function myCompletions(context) {
             let before = context.matchBefore(/\w+/);
             var opcodelist = [];
-            var completions = [
-                {label: "exit", type: "keyword", info: "quits the VM"},
-                {label: "push address x", type: "keyword", info: "pushes the address of x to the stack"},
-                {label: "push value_at x", type: "keyword", info: "pushes the current value of x to the stack"},
-                {label: "push value x", type: "keyword", info: "pushes x to the stack"},
-                {label: "debug", type: "keyword", info: "show the stack and the instruction"},
-                {label: "add", type: "keyword", info: "pops two values from the stack, adds them and push the result back to the stack"},
-                {label: "sub", type: "keyword", info: "pops two values from the stack, substracts them and push the result back to the stack"},
-                {label: "mul", type: "keyword", info: "pops two values from the stack, multiply them and push the result back to the stack"},
-                {label: "div", type: "keyword", info: "pops two values from the stack, divide them and push the result back to the stack"},
-                {label: "call x", type: "keyword", info: "calls label x"},
-                {label: "jump directly x", type: "keyword", info: "jumps directly to x"},
-                {label: "jump equals x", type: "keyword", info: "pops two values from the stack and compares then, if they are equal, the vm jumps to x"},
-                {label: "int", type: "keyword", info: "calls operatingsystem interrupt. this function uses 5 values from the stack and pushes the result back to the stack"},
-                {label: "ret", type: "keyword", info: "returns from a function"},
-                {label: "pop x", type: "keyword", info: "pops a value from the stack to variable x"},
-                {label: "label y", type: "keyword", info: "specify a label called y"},
-                {label: "dump text y", type: "keyword", info: "puts a unaltered text in memory"},
-                {label: "dump number y", type: "keyword", info: "puts a unaltered number in memory"},
-                {label: "syscall 1", type: "keyword", info: "takes a address from the stack and prints the value at the address to the screen"},
-                {label: "syscall 2", type: "keyword", info: "checks for userinput and pops the value back to the stack"}
-            ];
+            var completions = [];
             if (!context.explicit && !before) {
                 return null;
+            }
+            var lineident = context.state.doc.text[context.state.doc.lineAt(context.state.selection.main.head).number-1];
+            var variablenames = [];
+            for(var i = 0 ; i < context.state.doc.text.length ; i++){
+                var tok = context.state.doc.text[i].split(" ");
+                if(tok.length==2&&tok[0]=="label"){
+                    variablenames.push({
+                        label: tok[1] + "\n",
+                        type: "variable"
+                    });
+                }
+            }
+            lineident = lineident.split(" ");
+            if(lineident.length>1){
+                if(lineident[0]=="push"){
+                    if(lineident.length==2){
+                        completions = [
+                            {label: "address ", type: "keyword", info: "pushes the address of x to the stack"},
+                            {label: "64value_at ", type: "keyword", info: "pushes the current value of x to the stack"},
+                            {label: "64value ", type: "keyword", info: "pushes x to the stack"},
+                            {label: "8value_at ", type: "keyword", info: "pushes the current value of x to the stack"},
+                            {label: "8value ", type: "keyword", info: "pushes x to the stack"}
+                        ];
+                    }else if(lineident.length==3){
+                        completions = variablenames;
+                    }
+                }
+                else if(lineident[0]=="jump"){
+                    if(lineident.length==2){
+                        completions = [
+                            {label: "directly ", type: "keyword", info: "jumps directly to x"},
+                            {label: "equals ", type: "keyword", info: "pops two values from the stack and compares then, if they are equal, the vm jumps to x"}
+                        ];
+                    }else if(lineident.length==3){
+                        completions = variablenames;
+                    }
+                }
+                else if(lineident[0]=="pop"){
+                    if(lineident.length==2){
+                        completions = [
+                            {label: "64value ", type: "keyword", info: "pops a value from the stack to variable x"},
+                            {label: "8value ", type: "keyword", info: "pops a value from the stack to variable x"},
+                            {label: "64value_at ", type: "keyword", info: "pops a value from the stack to variable x"},
+                            {label: "8value_at ", type: "keyword", info: "pops a value from the stack to variable x"}
+                        ];
+                    }else if(lineident.length==3){
+                        completions = variablenames;
+                    }
+                }
+                else if(lineident[0]=="dump"){
+                    if(lineident.length==2){
+                        completions = [
+                            {label: "text ", type: "keyword", info: "puts a unaltered text in memory"},
+                            {label: "number ", type: "keyword", info: "puts a unaltered number in memory"}
+                        ];
+                    }else if(lineident.length==3){
+                        completions = variablenames;
+                        completions.push({
+                            label: "\"\"",
+                            type: "keyword"
+                        });
+                    }
+                }
+                else if(lineident[0]=="syscall"){
+                    completions = [
+                        {label: "1\n", type: "keyword", info: "takes a address from the stack and prints the value at the address to the screen"},
+                        {label: "2\n", type: "keyword", info: "checks for userinput and pops the value back to the stack"}
+                    ];
+                }
+            }else{
+                completions = [
+                    {label: "exit\n", type: "keyword", info: "quits the VM"},
+                    {label: "push ", type: "keyword", info: "pushes the address of x to the stack"},
+                    {label: "debug\n", type: "keyword", info: "show the stack and the instruction"},
+                    {label: "add\n", type: "keyword", info: "pops two values from the stack, adds them and push the result back to the stack"},
+                    {label: "sub\n", type: "keyword", info: "pops two values from the stack, substracts them and push the result back to the stack"},
+                    {label: "mul\n", type: "keyword", info: "pops two values from the stack, multiply them and push the result back to the stack"},
+                    {label: "div\n", type: "keyword", info: "pops two values from the stack, divide them and push the result back to the stack"},
+                    {label: "call ", type: "keyword", info: "calls label x"},
+                    {label: "jump ", type: "keyword", info: "jumps directly to x"},
+                    {label: "int\n", type: "keyword", info: "calls operatingsystem interrupt. this function uses 5 values from the stack and pushes the result back to the stack"},
+                    {label: "ret\n", type: "keyword", info: "returns from a function"},
+                    {label: "pop ", type: "keyword", info: "pops a value from the stack to variable x"},
+                    {label: "label ", type: "keyword", info: "specify a label called y"},
+                    {label: "dump ", type: "keyword", info: "puts a unaltered text in memory"},
+                    {label: "syscall ", type: "keyword", info: "takes a address from the stack and prints the value at the address to the screen"}
+                ];
             }
             return {
                 from: before ? before.from : context.pos,
