@@ -11,7 +11,7 @@
             float: left;
             margin: 0px;
             width: 50%;
-            height: 50%;
+            height: 100%;
         }
 
         .clear {
@@ -20,10 +20,20 @@
 
         .container {
             background-color: var(--bs-blue);
+            flex: 0 1 auto;
         }
 
         body{
             background-color: black;
+            display: flex;
+            flex-flow: column;
+            height: 100%;
+        }
+
+        .vertical{
+            flex-flow: row;
+            display: flex;
+            height: 100%;
         }
     </style>
 </head>
@@ -39,18 +49,15 @@
             </div>
         </div>
     </div>
-    <div class="box" id="gA"><iframe src="compiler.html" frameborder="0" scrolling="no" width="100%" height="100%">
-        </iframe> </div>
+    <div class="vertical">
+        <div class="box" id="gA"><iframe src="compiler.html" frameborder="0" scrolling="no" width="100%" height="100%">
+            </iframe> </div>
 
-    <div class="box" id="gB"> <iframe src="interpeter.html" frameborder="0" scrolling="no" width="100%" height="100%">
-        </iframe>
+        <div class="box" id="gB"> <iframe src="interpeter.html" frameborder="0" scrolling="no" width="100%" height="100%">
+            </iframe>
+        </div>
     </div>
-    <div class="clear"></div>
     <script>
-        document.addEventListener("DOMContentLoaded",function(){
-            document.getElementById("gA").style = "height: calc(100% - " + (Math.round(document.getElementsByClassName("container")[0].getClientRects()[0].height)+1) + "px)";
-            document.getElementById("gB").style = "height: calc(100% - " + (Math.round(document.getElementsByClassName("container")[0].getClientRects()[0].height)+1) + "px)";
-        });
         window.sendMessageToCompiler = function(e){};
         window.sendMessageToInterpeter = function(e){
             document.getElementById("gB").childNodes.forEach(function(a,b){
