@@ -19,7 +19,7 @@
         }
         .texthostcontainer{
             width: 100%;
-            height: 64vh;
+            height: 61vh;
             margin: 0px;
             font-weight: bold;
             background-color: white;
@@ -34,10 +34,10 @@
 </head>
 
 <body>
-    <button onclick="open_file()">Open source</button>
-    <button onclick="save_file()">Save source</button>
-    <button onclick="compile()">Compile</button>
-    <button onclick="save_compiled()" id="save_compiled_button" disabled>Save compiled</button>
+    <button onclick="open_file()"><img src="/images/open.png"><br/>Open source</button>
+    <button onclick="save_file()"><img src="/images/save.png"><br/>Save source</button>
+    <button onclick="compile()"><img src="/images/compile.png"><br/>Compile</button>
+    <button onclick="save_compiled()" id="save_compiled_button" disabled><img src="/images/save.png"><br/>Save compiled</button>
     <input type="checkbox" id="enableverbose" ><label for="enableverbose" style="color:white">Verbose</label>
     <textarea id="sourcecode"></textarea>
     <div class="texthostcontainer">
@@ -52,7 +52,7 @@
         import { indentWithTab } from "./cm/@codemirror-commands.js";
 
         var textmirror = new EditorView({
-            // doc: DEFAULT_PROGRAM,
+            // doc: "push address message\nsyscall 1\nexit\nlabel message\ndump text \"Hello World\"\n",
             extensions: [
               basicSetup,
               keymap.of([indentWithTab]),
